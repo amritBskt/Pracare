@@ -62,6 +62,7 @@ const Reports = () => {
 
   const submitDoctorReview = async (reportId) => {
     try {
+      console.log(doctorReview)
       await api.patch(`/reports/${reportId}/review/`, doctorReview);
       toast.success('Review submitted successfully');
       setModalOpen(false);

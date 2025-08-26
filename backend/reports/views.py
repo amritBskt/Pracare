@@ -11,42 +11,49 @@ class GenerateReportView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
     
     def post(self, request, session_id):
-        session = get_object_or_404(ChatSession, id=session_id, user=request.user)
-        
-        # Check if session has messages
-        if not session.messages.exists():
-            return Response(
-                {'error': 'Session has no messages to analyze'}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        try:
+            session = get_object_or_404(ChatSession, id=session_id, user=request.user)
+            
+            # Check if session has messages
+            if not session.messages.exists():
+                return Response(
+                    {'error': 'Session has no messages to analyze'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
-        # Check if report already exists
-        existing_report = PatientReport.objects.filter(session=session).first()
-        if existing_report:
-            return Response(PatientReportSerializer(existing_report).data)
-        
-        # Generate AI analysis
-        ai_service = AIService()
-        messages = list(session.messages.values('message_type', 'content'))
-        analysis = ai_service.analyze_chat_patterns(messages)
-        # print(analysis)
-        
-        if 'error' in analysis:
-            return Response({'error': analysis['error']}, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Create report
-        report = PatientReport.objects.create(
-            patient=request.user,
-            session=session,
-            mood_indicators=analysis.get('mood_indicators', []),
-            key_concerns=analysis.get('key_concerns', []),
-            coping_mechanisms=analysis.get('coping_mechanisms', []),
-            risk_factors=analysis.get('risk_factors', []),
-            ai_recommendations=analysis.get('recommendations', []),
-            session_summary=analysis.get('session_summary', '')
-        )
-        
-        return Response(PatientReportSerializer(report).data, status=status.HTTP_201_CREATED)
+            # Check if report already exists
+            existing_report = PatientReport.objects.filter(session=session).first()
+            if existing_report:
+                return Response(PatientReportSerializer(existing_report).data)
+            
+            # Generate AI analysis
+            ai_service = AIService()
+            messages = list(session.messages.values('message_type', 'content'))
+            analysis = ai_service.analyze_chat_patterns(messages)
+            # print(analysis)
+            
+            if 'error' in analysis:
+                return Response({'error': analysis['error']}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Create report
+            report = PatientReport.objects.create(
+                patient=request.user,
+                session=session,
+                mood_indicators=analysis.get('mood_indicators', []),
+                key_concerns=analysis.get('key_concerns', []),
+                coping_mechanisms=analysis.get('coping_mechanisms', []),
+                risk_factors=analysis.get('risk_factors', []),
+                ai_recommendations=analysis.get('recommendations', []),
+                session_summary=analysis.get('session_summary', 'Analysis completed successfully.')
+            )
+            
+            return Response(PatientReportSerializer(report).data, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            return Response(
+                {'error': str(e)}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 class PatientReportsListView(generics.ListAPIView):
     serializer_class = PatientReportSerializer
@@ -71,4 +78,11 @@ class DoctorReviewView(generics.UpdateAPIView):
         report = self.get_object()
         report.doctor = request.user
         
-        return super().update(request, *args, **kwargs)
+        # return super().update(request, *args, **kwargs)
+        serializer = self.get_serializer(report, data=request.data, partial=True)
+        
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

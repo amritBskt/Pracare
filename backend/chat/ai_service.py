@@ -11,6 +11,7 @@ class AIService:
         self.base_url = "http://localhost:11434/api/chat"
         self.model_name = "pracare"  # Your self-finetuned Ollama model
         self.system_prompt = """
+        Since this is conversation give short response
         You are Pracare, a compassionate and professional mental health chat assistant. 
         Your role is to provide empathetic, supportive responses to users seeking mental health guidance.
         

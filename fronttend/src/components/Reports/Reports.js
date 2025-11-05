@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import { useAuth } from '../../contexts/AuthContext';
 import { 
   FileText, 
@@ -59,6 +61,204 @@ const Reports = () => {
       toast.error('Failed to generate report');
     }
   };
+
+  const handleDownload = async (report) => {
+    try {
+      // Create a temporary container for the PDF content
+      const pdfContainer = document.createElement('div');
+      pdfContainer.style.position = 'absolute';
+      pdfContainer.style.left = '-9999px';
+      pdfContainer.style.width = '800px';
+      pdfContainer.style.padding = '40px';
+      pdfContainer.style.backgroundColor = '#ffffff';
+      pdfContainer.style.fontFamily = 'Arial, sans-serif';
+      
+      // Build the PDF content
+      pdfContainer.innerHTML = `
+        <div style="max-width: 800px; margin: 0 auto;">
+          <!-- Header -->
+          <div style="text-align: center; margin-bottom: 30px; border-bottom: 3px solid #4F46E5; padding-bottom: 20px;">
+            <h1 style="color: #1F2937; font-size: 28px; margin: 0 0 10px 0;">Mental Health Report</h1>
+            <p style="color: #6B7280; font-size: 14px; margin: 0;">Report #${report.id}</p>
+          </div>
+
+          <!-- Patient Information -->
+          <div style="margin-bottom: 25px; background-color: #F9FAFB; padding: 20px; border-radius: 8px;">
+            <h2 style="color: #1F2937; font-size: 18px; margin: 0 0 15px 0; border-bottom: 2px solid #E5E7EB; padding-bottom: 8px;">Patient Information</h2>
+            <div style="display: grid; gap: 10px;">
+              <p style="margin: 0; color: #374151; font-size: 14px;">
+                <strong>Name:</strong> ${report.patient.full_name}
+              </p>
+              <p style="margin: 0; color: #374151; font-size: 14px;">
+                <strong>Report Date:</strong> ${format(new Date(report.created_at), 'MMMM d, yyyy')}
+              </p>
+              <p style="margin: 0; color: #374151; font-size: 14px;">
+                <strong>Status:</strong> ${report.doctor ? 'Reviewed' : 'Pending Review'}
+              </p>
+            </div>
+          </div>
+
+          <!-- AI Analysis Section -->
+          <div style="margin-bottom: 25px;">
+            <h2 style="color: #1F2937; font-size: 18px; margin: 0 0 15px 0; border-bottom: 2px solid #E5E7EB; padding-bottom: 8px;">AI Analysis</h2>
+            
+            <!-- Session Summary -->
+            <div style="margin-bottom: 20px;">
+              <h3 style="color: #4B5563; font-size: 15px; margin: 0 0 8px 0; font-weight: 600;">Session Summary</h3>
+              <p style="color: #374151; font-size: 14px; line-height: 1.6; margin: 0; text-align: justify;">
+                ${report.session_summary}
+              </p>
+            </div>
+
+            ${report.mood_indicators && report.mood_indicators.length > 0 ? `
+            <!-- Mood Indicators -->
+            <div style="margin-bottom: 20px;">
+              <h3 style="color: #4B5563; font-size: 15px; margin: 0 0 8px 0; font-weight: 600;">Mood Indicators</h3>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                ${report.mood_indicators.map(mood => `
+                  <span style="background-color: #DBEAFE; color: #1E40AF; padding: 4px 12px; border-radius: 12px; font-size: 13px; display: inline-block;">
+                    ${mood}
+                  </span>
+                `).join('')}
+              </div>
+            </div>
+            ` : ''}
+
+            ${report.key_concerns && report.key_concerns.length > 0 ? `
+            <!-- Key Concerns -->
+            <div style="margin-bottom: 20px;">
+              <h3 style="color: #4B5563; font-size: 15px; margin: 0 0 8px 0; font-weight: 600;">Key Concerns</h3>
+              <ul style="margin: 0; padding-left: 20px; color: #374151; font-size: 14px; line-height: 1.8;">
+                ${report.key_concerns.map(concern => `<li>${concern}</li>`).join('')}
+              </ul>
+            </div>
+            ` : ''}
+
+            ${report.ai_recommendations && report.ai_recommendations.length > 0 ? `
+            <!-- AI Recommendations -->
+            <div style="margin-bottom: 20px;">
+              <h3 style="color: #4B5563; font-size: 15px; margin: 0 0 8px 0; font-weight: 600;">AI Recommendations</h3>
+              <ul style="margin: 0; padding-left: 20px; color: #374151; font-size: 14px; line-height: 1.8;">
+                ${report.ai_recommendations.map(rec => `<li>${rec}</li>`).join('')}
+              </ul>
+            </div>
+            ` : ''}
+          </div>
+
+          ${report.doctor ? `
+          <!-- Professional Review Section -->
+          <div style="margin-bottom: 25px; background-color: #ECFDF5; padding: 20px; border-radius: 8px; border-left: 4px solid #10B981;">
+            <h2 style="color: #1F2937; font-size: 18px; margin: 0 0 15px 0; border-bottom: 2px solid #D1FAE5; padding-bottom: 8px;">Professional Review</h2>
+            
+            <div style="margin-bottom: 15px;">
+              <p style="color: #059669; font-size: 14px; margin: 0 0 15px 0; font-weight: 600;">
+                ✓ Reviewed by Dr. ${report.doctor.full_name}
+              </p>
+            </div>
+
+            ${report.doctor_notes ? `
+            <div style="margin-bottom: 15px;">
+              <h3 style="color: #047857; font-size: 15px; margin: 0 0 8px 0; font-weight: 600;">Clinical Notes</h3>
+              <p style="color: #374151; font-size: 14px; line-height: 1.6; margin: 0; text-align: justify;">
+                ${report.doctor_notes}
+              </p>
+            </div>
+            ` : ''}
+
+            ${report.doctor_recommendations ? `
+            <div style="margin-bottom: 15px;">
+              <h3 style="color: #047857; font-size: 15px; margin: 0 0 8px 0; font-weight: 600;">Professional Recommendations</h3>
+              <p style="color: #374151; font-size: 14px; line-height: 1.6; margin: 0; text-align: justify;">
+                ${report.doctor_recommendations}
+              </p>
+            </div>
+            ` : ''}
+
+            ${report.prescription ? `
+            <div style="margin-bottom: 15px;">
+              <h3 style="color: #047857; font-size: 15px; margin: 0 0 8px 0; font-weight: 600;">Prescription/Treatment Plan</h3>
+              <p style="color: #374151; font-size: 14px; line-height: 1.6; margin: 0; text-align: justify;">
+                ${report.prescription}
+              </p>
+            </div>
+            ` : ''}
+
+            ${report.follow_up_required ? `
+            <div style="background-color: #FEF3C7; padding: 12px; border-radius: 6px; border-left: 3px solid #F59E0B;">
+              <p style="color: #92400E; font-size: 14px; margin: 0;">
+                <strong>⚠ Follow-up Required</strong>
+                ${report.follow_up_date ? ` on ${format(new Date(report.follow_up_date), 'MMMM d, yyyy')}` : ''}
+              </p>
+            </div>
+            ` : ''}
+          </div>
+          ` : ''}
+
+          <!-- Footer -->
+          <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #E5E7EB; text-align: center;">
+            <p style="color: #6B7280; font-size: 12px; margin: 0;">
+              This report is confidential and intended for medical use only.
+            </p>
+            <p style="color: #6B7280; font-size: 12px; margin: 5px 0 0 0;">
+              Generated on ${format(new Date(), 'MMMM d, yyyy \'at\' h:mm a')}
+            </p>
+          </div>
+        </div>
+      `;
+
+      // Append to body temporarily
+      document.body.appendChild(pdfContainer);
+
+      // Generate PDF using html2canvas and jsPDF
+      const canvas = await html2canvas(pdfContainer, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      });
+
+      // Remove temporary container
+      document.body.removeChild(pdfContainer);
+
+      // Create PDF
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const imgWidth = 210; // A4 width in mm
+      const pageHeight = 297; // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      // Add first page
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      // Add additional pages if content is longer than one page
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      // Generate filename
+      const fileName = `Mental_Health_Report_${report.id}_${report.patient.full_name.replace(/\s+/g, '_')}_${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+
+      // Save the PDF
+      pdf.save(fileName);
+
+      toast.success('Report downloaded successfully');
+    } catch (error) {
+      console.error('Failed to download report:', error);
+      toast.error('Failed to download report');
+    }
+  };
+
 
   const submitDoctorReview = async (reportId) => {
     try {
@@ -224,6 +424,12 @@ const Reports = () => {
                       >
                         <Eye className="h-4 w-4" />
                       </button>
+                      {/* Download PDF Button */}
+                      <button onClick={() => handleDownload(report)}
+                        className="inline-flex items-center p-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      >
+                        <Download className="h-4 w-4" />
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -253,7 +459,7 @@ const Reports = () => {
                 </button>
               </div>
 
-              <div className="space-y-6 max-h-96 overflow-y-auto">
+              <div id="report-content" className="space-y-6 max-h-96 overflow-y-auto">
                 {/* AI Analysis */}
                 <div>
                   <h4 className="text-md font-medium text-gray-900 mb-3">AI Analysis</h4>

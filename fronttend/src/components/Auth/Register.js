@@ -80,7 +80,7 @@ const Register = () => {
         <form className="mt-8 space-y-6 bg-white p-8 rounded-lg shadow-md" onSubmit={handleSubmit}>
           <div className="space-y-4">
             {/* User Type Selection */}
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 I am a:
               </label>
@@ -108,7 +108,7 @@ const Register = () => {
                   <span className="ml-2 text-sm text-gray-700">Doctor</span>
                 </label>
               </div>
-            </div>
+            </div> */}
 
             {/* Full Name */}
             <div>

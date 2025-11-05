@@ -60,19 +60,21 @@ const Layout = () => {
               {navigation.map((item) => {
                 const Icon = item.icon;
                 return (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className={`${
-                      isCurrentPath(item.href)
-                        ? 'bg-indigo-100 text-indigo-900'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                    } group flex items-center px-2 py-2 text-base font-medium rounded-md`}
-                    onClick={() => setSidebarOpen(false)}
-                  >
-                    <Icon className="mr-4 h-6 w-6" />
-                    {item.name}
-                  </Link>
+                  (user?.user_type !== 'doctor' || item.name !== 'Chat') && (
+                    <Link
+                      key={item.name}
+                      to={item.href}
+                      className={`${
+                        isCurrentPath(item.href)
+                          ? 'bg-indigo-100 text-indigo-900'
+                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      } group flex items-center px-2 py-2 text-base font-medium rounded-md`}
+                      onClick={() => setSidebarOpen(false)}
+                    >
+                      <Icon className="mr-4 h-6 w-6" />
+                      {item.name}
+                    </Link>
+                  )
                 );
               })}
             </nav>
@@ -106,18 +108,20 @@ const Layout = () => {
                 {navigation.map((item) => {
                   const Icon = item.icon;
                   return (
-                    <Link
-                      key={item.name}
-                      to={item.href}
-                      className={`${
-                        isCurrentPath(item.href)
-                          ? 'bg-indigo-100 text-indigo-900'
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                      } group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
-                    >
-                      <Icon className="mr-3 h-6 w-6" />
-                      {item.name}
-                    </Link>
+                    (user?.user_type !== 'doctor' || item.name !== 'Chat') && (
+                      <Link
+                        key={item.name}
+                        to={item.href}
+                        className={`${
+                          isCurrentPath(item.href)
+                            ? 'bg-indigo-100 text-indigo-900'
+                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        } group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
+                      >
+                        <Icon className="mr-3 h-6 w-6" />
+                        {item.name}
+                      </Link>
+                    )
                   );
                 })}
               </nav>

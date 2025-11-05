@@ -1,0 +1,28 @@
+
+
+I) Extract
+II) Open with VS code
+
+
+III) BACKEND SETUP (first time matra garne)
+	cd backend
+	python -m venv .venv
+	.venv\Scripts\activate
+	pip install -r requirements.txt
+	python manage.py makemigrations
+	python manage.py migrate
+	python manage.py createsuperuser    (email, username, password halne ani yaad garera rakhne)
+	
+IV) BACKEND RUN (Everytime)
+	cd backend
+	.venv\Scripts\activate
+	python manage.py runserver
+
+V) FRONTEND Setup (First time matra garne)
+	cd fronttend
+	npm install
+
+VI) FRONTEND RUN (Everytime)
+	cd fronttend
+	npm start
+	

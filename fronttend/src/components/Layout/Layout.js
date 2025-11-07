@@ -25,7 +25,12 @@ const Layout = () => {
     { name: 'Chat', href: '/chat', icon: MessageCircle },
     { name: 'Reports', href: '/reports', icon: FileText },
   ];
-
+  
+  if(user?.is_staff){
+    navigation.pop();
+    navigation.pop();
+    navigation[0].href='/admin-dashboard';
+  }
   const handleLogout = () => {
     logout();
     toast.success('Logged out successfully');

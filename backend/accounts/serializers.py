@@ -45,5 +45,5 @@ class UserLoginSerializer(serializers.Serializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ('id', 'email', 'username', 'user_type', 'full_name', 'phone', 'date_of_birth', 'created_at')
-        read_only_fields = ('id', 'email', 'created_at')
+        fields = ('id', 'email', 'username', 'user_type', 'full_name', 'phone', 'date_of_birth', 'created_at', 'is_staff')
+        read_only_fields = ('id', 'email', 'created_at', 'is_staff')

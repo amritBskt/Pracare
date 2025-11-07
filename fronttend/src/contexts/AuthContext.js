@@ -77,18 +77,37 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('refreshToken');
     setUser(null);
   };
-
+  
+  // Just to register doctor by Admin
+  const registerDoctor = async (userData) => {
+    try {
+      await api.post('/auth/register/', userData);      
+      return { success: true };
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error.response?.data || 'Registration failed' 
+      };
+    }
+  };
+  
   const value = {
     user,
     login,
     register,
+    registerDoctor,
     logout,
     loading,
   };
+
 
   return (
     <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
+
+  
 };
+
+

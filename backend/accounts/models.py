@@ -5,6 +5,7 @@ class CustomUser(AbstractUser):
     USER_TYPE_CHOICES = (
         ('patient', 'Patient'),
         ('doctor', 'Doctor'),
+        ('admin', 'Admin'),
     )
     
     email = models.EmailField(unique=True)
@@ -18,5 +19,10 @@ class CustomUser(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
     
+    def save(self, *args, **kwargs):
+        if self.is_superuser:
+            self.user_type = 'admin'
+        super().save(*args, **kwargs)
+        
     def __str__(self):
         return f"{self.email} ({self.user_type})"
